@@ -16,5 +16,5 @@ let session = {
   date: "now",
 };
 
-    const qrcode = await generateQrcode(session);
-    console.log(qrcode); 
+const qrcode = await generateQrcode(session);
+console.log(qrcode); 
