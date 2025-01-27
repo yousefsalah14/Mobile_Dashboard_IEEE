@@ -1,5 +1,5 @@
 import { model, Schema } from 'mongoose';
-
+import bcryptjs from 'bcryptjs';
 const userSchema = new Schema({
     userName: {
         type: String,
@@ -16,7 +16,7 @@ const userSchema = new Schema({
         required :true
     },
     status: {
-        type: string,
+        type: String,
         enum:["Pending","Approved","Rejected"],
         default : "Pending"
     },
@@ -41,7 +41,14 @@ const userSchema = new Schema({
             type: String,
             default : "E-commerce/users/defaults/profile/default-profile-account_coekpm"
         }
+        
     },
+    isVerified:{
+        type:Boolean,
+        default:false   
+            
+    },
+    forgetCode:String,
     committee : String ,
     chapter : String
 
@@ -50,8 +57,7 @@ const userSchema = new Schema({
 userSchema.pre("save",function(){
     if(this.isModified("password")){
         this.password = bcryptjs.hashSync(
-            this.password,
-            parseInt(process.env.SALT_ROUND))
+            this.password,parseInt(process.env.SALT_ROUND))
     }
 })
 export const User = model('User', userSchema);
