@@ -41,7 +41,7 @@ const taskSchema = new Schema(
     },
     attachments: [
       {
-        type: String,
+        type: String, // images, pdfs etc...
         validate: {
           validator: (v) => {
             return /^https?:\/\/[^\s$.?#].[^\s]*$/.test(v);

@@ -11,15 +11,18 @@ import randomstring from "randomstring";
 
 
 export const register = asyncHandler(async (req, res, next) => {
-  const { userName, email, password, confirmPassword, phone, gender, role } =
-    req.body;
+
+  const { userName, email, password, confirmPassword, phone, gender, role } = req.body;
   const userExist = await User.findOne({ email });
+  
   if (userExist) {
     return next(new Error("user is already exist!"));
   }
+  
   if (password != confirmPassword) {
     return next(new Error("password and confirm password must be same!"));
   }
+  
   const user = new User({
     userName,
     email,
@@ -30,14 +33,10 @@ export const register = asyncHandler(async (req, res, next) => {
   });
   await user.save();
 
-
-
-
-
-  //create confirmaion link
   const token = jwt.sign({ email }, process.env.TOKEN_KEY);
   const link = `http://localhost:3000/auth/activate_account/${token}`;
-  //send email
+
+  // Send email
   const mail = await sendEmail({
     to: email,
     subject: "Confirm your account",
@@ -51,14 +50,10 @@ export const register = asyncHandler(async (req, res, next) => {
     success: true,
     msg: "check your email to verify your account ",
     user,
+    token
   });
 });
 
-
-
-
-
-// activate account
 export const activate = asyncHandler(async (req, res, next) => {
   const token = req.params.token;
   const decoded = jwt.verify(token, process.env.TOKEN_KEY);
@@ -119,7 +114,7 @@ export const forgetCode = asyncHandler(async (req, res, next) => {
   await user.save();
   const messageSent = await sendEmail({
     to: email,
-    subject: "Reset  Password",
+    subject: "Reset Password",
     text: code,
   });
   if (!messageSent) return next(new Error("message not sent to email "));
