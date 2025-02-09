@@ -50,7 +50,12 @@ export const register = asyncHandler(async (req, res, next) => {
   return res.json({
     success: true,
     msg: "check your email to verify your account ",
-    user,
+    user :{
+      userName : user.userName,
+      email : user.email,
+      profileImg  : user.profileImg,
+      _id : user._id
+    },
   });
 });
 
