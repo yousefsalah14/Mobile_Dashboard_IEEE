@@ -66,7 +66,7 @@ export const register = asyncHandler(async (req, res, next) => {
 // activate account
 export const activate = asyncHandler(async (req, res, next) => {
   const token = req.params.token;
-  const decoded = jwt.verify(token, process.env.TOKEN_KEY);
+  const decoded = jwt.verify(token, process.env.TOKEN_KEY);;
   const user = await User.findOne({ email: decoded.email });
 
   if (!user) {
