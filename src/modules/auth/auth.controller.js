@@ -36,7 +36,7 @@ export const register = asyncHandler(async (req, res, next) => {
 
   //create confirmaion link
   const token = jwt.sign({ email }, process.env.TOKEN_KEY);
-  const link = `http://localhost:3000/auth/activate_account/${token}`;
+  const link = `https://mobile-dashboard-ieee.vercel.app/${token}`;
   //send email
   const mail = await sendEmail({
     to: email,
