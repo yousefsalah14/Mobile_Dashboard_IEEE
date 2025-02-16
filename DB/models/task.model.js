@@ -41,13 +41,8 @@ const taskSchema = new Schema(
     },
     attachments: [
       {
-        type: String, // images, pdfs etc...
-        validate: {
-          validator: (v) => {
-            return /^https?:\/\/[^\s$.?#].[^\s]*$/.test(v);
-          },
-          message: (props) => `${props.value} is not a valid URL!`,
-        },
+        type: String,
+        default: []
       },
     ],
   },

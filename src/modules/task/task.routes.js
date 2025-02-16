@@ -13,11 +13,11 @@ router.get('/task/:taskID', taskController.fetchTask)
 router.use(isAuthenticated)
 router.use(isAuthorized('Chair', 'Director'))
 
-router.post('/upload-material/pdfs', getUploader('pdf', 'local').array('pdfs') ,taskController.uploadSessionPdfs)
+router.post('/upload-material/pdfs/:taskID', getUploader('pdf', 'local').array('pdfs') ,taskController.uploadTaskPdfs)
 
-router.post('/upload-material/videos', getUploader('video', 'cloud').array('videos') ,taskController.uploadSessionVideos)
+router.post('/upload-material/videos/:taskID', getUploader('video', 'cloud').array('videos') ,taskController.uploadTaskVideos)
 
-router.post('/upload-material/images', getUploader('image', 'local').array('images') ,taskController.uploadSessionImages)
+router.post('/upload-material/images/:taskID', getUploader('image', 'local').array('images') ,taskController.uploadTaskImages)
 
 router.patch('/task/:taskID', taskController.updateTask)
 

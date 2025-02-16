@@ -1,25 +1,153 @@
 import { Task } from "../../../DB/models/task.model.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
+import { User } from "../../../DB/models/user.model.js";
 import { handleFileUpload } from "../../utils/handleFileUpload.js";
+import mongoose from 'mongoose';
+const { ObjectId } = mongoose.Types;
 
 const taskController = {
-    uploadSessionPdfs: asyncHandler(async (req, res) => {
-        const { isCloud } = req.query || false;
+    uploadTaskPdfs: asyncHandler(async (req, res) => {
+        const isCloud = req.query.isCloud === "true"; 
+        const { taskID } = req.params;
+      
+        if (!taskID) {
+          return res.status(400).json({ success: false, message: "Task ID is required" });
+        }
+      
+        if (!mongoose.Types.ObjectId.isValid(taskID)) {
+          return res.status(400).json({ 
+            success: false, 
+            message: "Invalid Task ID" 
+          });
+        }
+      
         const result = await handleFileUpload(req.files, "application/pdf", isCloud);
-        return res.status(result.success ? 200 : 400).json(result);
+      
+        if (!result.success) {
+          return res.status(400).json(result);
+        }
+      
+        if (!result.files || !Array.isArray(result.files)) {
+          return res.status(400).json({
+            success: false,
+            message: "No valid files uploaded"
+          });
+        }
+      
+        const taskIdObj = new mongoose.Types.ObjectId(taskID);
+      
+        const urls = result.files.map(file => file.url);
+      
+        const task = await Task.findOneAndUpdate(
+          { _id: taskIdObj }, 
+          { $push: { attachments: { $each: urls } } }, 
+          { new: true }
+        );
+      
+        if (!task) {
+          return res.status(404).json({ success: false, message: "Task not found" });
+        }
+      
+        return res.status(200).json({ success: true, message: "PDFs uploaded", task });
     }),
 
-    uploadSessionVideos: asyncHandler(async (req, res) => {
-        const { isCloud } = req.query || false;
+    uploadTaskVideos: asyncHandler(async (req, res) => {
+        const { isCloud } = req.query
+        const { taskID } = req.params;
+      
+        if (!taskID) {
+          return res.status(400).json({ success: false, message: "Task ID is required" });
+        }
+      
+        if (!mongoose.Types.ObjectId.isValid(taskID)) {
+          return res.status(400).json({ 
+            success: false, 
+            message: "Invalid Task ID" 
+          });
+        }
+      
         const result = await handleFileUpload(req.files, "video", isCloud);
-        return res.status(result.success ? 200 : 400).json(result);
+      
+        if (!result.success) {
+          return res.status(400).json(result);
+        }
+      
+        if (!result.files || !Array.isArray(result.files)) {
+          return res.status(400).json({
+            success: false,
+            message: "No valid files uploaded"
+          });
+        }
+      
+        const urls = result.files.map(file => file.secure_url || file.url); // Cloud
+      
+        const taskIdObj = new mongoose.Types.ObjectId(taskID);
+      
+        const task = await Task.findOneAndUpdate(
+          { _id: taskIdObj },
+          { $push: { attachments: { $each: urls } } },
+          { new: true }
+        );
+      
+        if (!task) {
+          return res.status(404).json({ success: false, message: "Task not found" });
+        }
+      
+        return res.status(200).json({ 
+          success: true, 
+          message: "Videos uploaded", 
+          task 
+        });
     }),
 
-    uploadSessionImages: asyncHandler(async (req, res) => {
-        const { isCloud } = req.query || false;
+    uploadTaskImages: asyncHandler(async (req, res) => {
+        const isCloud = req.query.isCloud === "true";
+        let { taskID } = req.params;
+      
+        if (!taskID) {
+          return res.status(400).json({ 
+            success: false, 
+            message: "Task ID is required" 
+          });
+        }
+      
         const result = await handleFileUpload(req.files, "image", isCloud);
-        return res.status(result.success ? 200 : 400).json(result);
-    }),
+      
+        if (!result.success) {
+          return res.status(400).json(result);
+        }
+      
+        if (!result.files || !Array.isArray(result.files)) {
+          return res.status(400).json({
+            success: false,
+            message: "No valid files uploaded"
+          });
+        }
+
+        taskID = new ObjectId(taskID)
+      
+        const urls = result.files.map(file => file.url);
+      
+        const task = await Task.findOneAndUpdate(
+          { _id: taskID },
+          { $push: { attachments: { $each: urls } } },  
+          { new: true }
+        );
+      
+        if (!task) {
+          return res.status(404).json({ 
+            success: false, 
+            message: "Task not found" 
+          });
+        }
+      
+        return res.status(200).json({ 
+          success: true, 
+          message: "Images uploaded", 
+          task 
+        });
+      }),
+
 
     fetchTasks: asyncHandler(async (req, res) => {
         const tasks = await Task.find();
@@ -68,15 +196,29 @@ const taskController = {
 
     addTask: asyncHandler(async (req, res) => {
         const taskData = req.body;
-        const newTask = new Task(taskData);
+        const user = req.user;
+    
+        if (!taskData.title || !taskData.description) {
+            return res.status(400).json({
+                success: false,
+                message: "Title and description are required!"
+            });
+        }
+    
+        const newTask = new Task({
+            ...taskData,
+            created_by: user._id,
+        });
+    
         await newTask.save();
-
+    
         return res.status(201).json({
             success: true,
             message: "Task added successfully",
             data: newTask,
         });
     }),
+
 
     deleteTask: asyncHandler(async (req, res) => {
         const { taskID } = req.params;

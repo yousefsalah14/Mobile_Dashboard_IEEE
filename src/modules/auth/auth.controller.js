@@ -33,7 +33,13 @@ export const register = asyncHandler(async (req, res, next) => {
   });
   await user.save();
 
-  const token = jwt.sign({ email }, process.env.TOKEN_KEY);
+  let token;
+  try {
+    token = jwt.sign({ userId: user._id, email, role }, process.env.TOKEN_KEY);
+  } catch (err) {
+    return next(new Error("Failed to generate token!"));
+  } 
+  
   const link = `http://localhost:3000/auth/activate_account/${token}`;
 
   // Send email

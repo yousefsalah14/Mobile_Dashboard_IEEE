@@ -43,7 +43,7 @@ export const handleFileUpload = async (files, fileType, isCloud) => {
                 filename: file.filename,
                 originalname: file.originalname,
                 size: file.size,
-                url: `/uploads/${fileType}s/${file.filename}`,
+                url: `/uploads/${file.mimetype.split("/")[1]}s/${file.filename}`,
             })),
         };
     }
